@@ -68,14 +68,14 @@ p3_num = sp.lambdify(eta, phi3, modules=['numpy'])
 psi_num = sp.lambdify(eta, psi, modules=['numpy'])
 phis = [p1_num, p2_num, p3_num]
 
-# Formula 9: Minimizing J = integral_0^1 [R^2] d_eta -> Converting to A * C = B
+# Formula 9: Minimizing J = integral_0^(pi/2) [R^2] d_eta -> Converting to A * C = B
 A_mat = np.zeros((3, 3))
 B_vec = np.zeros(3)
 
 for i in range(3):
     for j in range(3):
-        A_mat[i, j], _ = quad(lambda x: phis[i](x) * phis[j](x), 0, 1, limit=250)
-    B_vec[i], _ = quad(lambda x: -psi_num(x) * phis[i](x), 0, 1, limit=250)
+        A_mat[i, j], _ = quad(lambda x: phis[i](x) * phis[j](x), 0, np.pi/2, limit=250)
+    B_vec[i], _ = quad(lambda x: -psi_num(x) * phis[i](x), 0, np.pi/2, limit=250)
 
 # Solving the linear system to find optimal parameters
 C_opt = np.linalg.solve(A_mat, B_vec)
@@ -99,13 +99,14 @@ R_numeric = sp.expand(R.subs({C1: c1_val, C2: c2_val, C3: c3_val}))
 R_fn = sp.lambdify(eta, R_numeric, modules=['numpy'])
 
 
-eta_grid = np.linspace(0.0, 1.0, 11)
+# 10 نقطه هم‌فاصله در بازه [0, pi/2] (شامل دو سر بازه)
+eta_grid = np.linspace(0.0, np.pi/2, 10)
 approximations = []
 errors = []
 
-print("\n" + "=" * 75)
-print(f"{'eta':<5} | {'OAFM Approx':<18} | {'Exact Solution (cos)':<22} | {'Absolute Error':<15}")
-print("-" * 75)
+print("\n" + "=" * 80)
+print(f"{'eta':<8} | {'OAFM Approx':<18} | {'Exact Solution (cos)':<22} | {'Absolute Error':<15}")
+print("-" * 80)
 
 for e in eta_grid:
     approx_val = float(F_tilde_fn(e))
@@ -115,8 +116,8 @@ for e in eta_grid:
     approximations.append(approx_val)
     errors.append(abs_err)
 
-    print(f"{e:<5.1f} | {approx_val:<18.12f} | {exact_val:<22.12f} | {abs_err:<15.5e}")
-print("=" * 75)
+    print(f"{e:<8.4f} | {approx_val:<18.12f} | {exact_val:<22.12f} | {abs_err:<15.5e}")
+print("=" * 80)
 
 # =============================================================================
 # 6. GENERATING ERROR DIAGRAM
@@ -135,7 +136,7 @@ plt.show()
 # =============================================================================
 # 7. GENERATING RESIDUAL DIAGRAM
 # =============================================================================
-eta_plot = np.linspace(0.0, 1.0, 200)
+eta_plot = np.linspace(0.0, np.pi/2, 200)
 residual_plot = [float(R_fn(e)) for e in eta_plot]
 
 plt.figure(figsize=(7,5))
