@@ -36,7 +36,8 @@ CandidateBasis = [
     eta**5, eta**6, eta**7, eta**8, eta**9, eta**10, eta**11, eta**2,
 ]
 
-eta_points = np.linspace(0, 1, 25)
+# 8 نقطه هم‌فاصله در بازه [0, pi/2] (شامل دو سر بازه)
+eta_points = np.linspace(0, float(pi/2), 25)
 
 # -------------------------------------------------
 # Helper Function
@@ -168,10 +169,12 @@ print("="*60)
 # -------------------------------------------------
 # Data Generation & Text Table
 # -------------------------------------------------
-eta_plot = np.linspace(0, 1, 100)
+# نقاط نمودار در بازه [0, pi/2]
+eta_plot = np.linspace(0, float(pi/2), 100)
 F_num = lambdify(eta, F_final_sym, 'numpy')
 
-eta_table = np.linspace(0, 1, 11)
+# نقاط جدول: 8 نقطه هم‌فاصله در بازه [0, pi/2]
+eta_table = np.linspace(0, float(pi/2), 10)
 exact_table = np.cos(eta_table)
 approx_table = F_num(eta_table)
 error_table = np.abs(exact_table - approx_table)
@@ -216,16 +219,16 @@ F_exact_plot = np.cos(eta_plot)
 F_approx_plot = F_num(eta_plot)
 plt.semilogy(eta_plot, np.abs(F_approx_plot - F_exact_plot), color='blue', linewidth=2)
 plt.title("Absolute Error (Log Scale)", fontweight="bold")
-plt.xlabel("$\eta$")
-plt.ylabel("$|F_{approx} - F_{exact}|$")
+plt.xlabel(r"$\eta$")
+plt.ylabel(r"$|F_{approx} - F_{exact}|$")
 plt.grid(True, which='both', linestyle='--', alpha=0.7)
 
 # ---- نمودار دوم: نمودار باقیمانده ----
 plt.subplot(1, 2, 2)
-plt.plot(eta_points, final_residual_vec, 'go--', linewidth=1.5, markersize=6, label="Residual $Ac - b$")
+plt.plot(eta_points, final_residual_vec, 'go--', linewidth=1.5, markersize=6, label=r"Residual $Ac - b$")
 plt.axhline(0, color='black', linewidth=1)
 plt.title("Equation Residual Vector", fontweight="bold")
-plt.xlabel("$\eta$")
+plt.xlabel(r"$\eta$")
 plt.ylabel("Residual Value")
 plt.legend()
 plt.grid(True, linestyle='--', alpha=0.7)
