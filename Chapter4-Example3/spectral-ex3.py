@@ -53,12 +53,12 @@ class ChelyshkovCollocationSolver:
     def compute_gram_matrix(self):
         """ تشکیل ماتریس جرم (Gram Matrix) با استفاده از کوآدراتور گاوس """
         Q = np.zeros((self.N + 1, self.N + 1))
-        z, w = roots_legendre(50) 
+        z, w = roots_legendre(50)
         z_mapped = 0.5 * z + 0.5
         w_mapped = 0.5 * w
-        
+
         Phi_vals = np.array([[float(self.Phi[i].subs(self.x, p)) for p in z_mapped] for i in range(self.N + 1)])
-        
+
         for i in range(self.N + 1):
             for j in range(self.N + 1):
                 Q[i, j] = np.sum(w_mapped * Phi_vals[i] * Phi_vals[j])
@@ -70,18 +70,18 @@ class ChelyshkovCollocationSolver:
         z, w = roots_legendre(50)
         z_mapped = 0.5 * z + 0.5
         w_mapped = 0.5 * w
-        
+
         if self.x in func_expr.free_symbols:
             f_func = sp.lambdify(self.x, func_expr, 'numpy')
             f_vals = f_func(z_mapped)
         else:
             f_vals = np.full_like(z_mapped, float(func_expr))
-            
+
         Phi_vals = np.array([[float(self.Phi[i].subs(self.x, p)) for p in z_mapped] for i in range(self.N + 1)])
-        
+
         for i in range(self.N + 1):
             b[i] = np.sum(w_mapped * f_vals * Phi_vals[i])
-            
+
         return Q_inv @ b
 
     def solve(self):
@@ -111,11 +111,11 @@ class ChelyshkovCollocationSolver:
 
         W_mat = sp.Matrix(self.W).T
 
-        # تقریب‌ها بر اساس روابط تصویرشده 
+        # تقریب‌ها بر اساس روابط تصویرشده
         F_triple_prime_sym = (W_mat * Phi_sym)[0]
         F_prime_sym = ((C_prime_mat + W_mat * P2_mat) * Phi_sym)[0]
         F_sym = ((C_mat + W_mat * P3_mat) * Phi_sym)[0]
-        g_sym = (G_mat * Phi_sym)[0]  
+        g_sym = (G_mat * Phi_sym)[0]
 
         # 4. نقاط هم‌محلی بر اساس ریشه‌های چندجمله‌ای پایه N+1
         C_Nplus1 = self.chelyshkov_poly(self.N + 1, 0, self.x)
@@ -176,7 +176,8 @@ if __name__ == "__main__":
     solver = ChelyshkovCollocationSolver(N=N_degree, M=30)
     solver.solve()
 
-    table_points = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    # 10 نقطه هم‌فاصله در بازه [0, pi/2] (شامل دو سر بازه)
+    table_points = np.linspace(0.0, np.pi/2, 10)
 
     approx_vals = solver.evaluate(table_points)
     exact_vals = np.cos(table_points)  # تابع دقیق F(eta) = cos(eta)
@@ -186,7 +187,7 @@ if __name__ == "__main__":
     print(f"{'eta':<8} | {'Exact F(eta)':<20} | {'Approx F(eta)':<20} | {'Absolute Error':<15}")
     print("=" * 72)
     for i in range(len(table_points)):
-        print(f"{table_points[i]:<8.2f} | {exact_vals[i]:<20.10e} | {approx_vals[i]:<20.10e} | {errors[i]:<15.4e}")
+        print(f"{table_points[i]:<8.4f} | {exact_vals[i]:<20.10e} | {approx_vals[i]:<20.10e} | {errors[i]:<15.4e}")
     print("=" * 72)
 
     # جدول LaTeX
@@ -199,13 +200,13 @@ if __name__ == "__main__":
     print(r"        \hline")
     print(r"        $\eta$ & Exact $F(\eta)$ & Approx $F(\eta)$ & Absolute Error \\ \hline")
     for i in range(len(table_points)):
-        print(f"        {table_points[i]:.2f} & {exact_vals[i]:.10e} & {approx_vals[i]:.10e} & {errors[i]:.4e} \\\\")
+        print(f"        {table_points[i]:.4f} & {exact_vals[i]:.10e} & {approx_vals[i]:.10e} & {errors[i]:.4e} \\\\")
     print(r"        \hline")
     print(r"    \end{tabular}")
     print(r"\end{table}" + "\n")
 
-    # رسم نمودارها
-    x_test = np.linspace(0, 1, 100)
+    # رسم نمودارها (نقاط نمودار در بازه [0, pi/2])
+    x_test = np.linspace(0, np.pi/2, 100)
     y_approx = solver.evaluate(x_test)
     y_exact = np.cos(x_test)
 
