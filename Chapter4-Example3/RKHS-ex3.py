@@ -24,7 +24,7 @@ K_sym = sp.Piecewise(
 )
 
 def get_phi_i(xi):
-    """ \phi_i(x) = K(x, xi) """
+    r""" \phi_i(x) = K(x, xi) """
     return K_sym.subs(y_sym, xi)
 
 def apply_L_star(expr, var):
@@ -38,7 +38,7 @@ def apply_L_star(expr, var):
 w_sym = apply_L_star(K_sym, y_sym)  # w_i(x) = L_y K(x, y)
 
 # محاسبه ضرب داخلی مستقیماً از تعریف فضای RKHS
-inner_prod_sym = apply_L_star(w_sym, x_sym) 
+inner_prod_sym = apply_L_star(w_sym, x_sym)
 
 def inner_product_w(i, j):
     """ محاسبه ضرب داخلی با ارزیابی فرمول استخراج‌شده در نقاط """
@@ -47,18 +47,18 @@ def inner_product_w(i, j):
     return float(val)
 
 def int_t_w(m):
-    """ \int_0^{\pi/2} \tau w'_m(\tau) d\tau """
+    r""" \int_0^{\pi/2} \tau w'_m(\tau) d\tau """
     xm = x_nodes[m]
     # برای پایداری و دقت 100٪ در محاسبه تحلیلی، بازه انتگرال دو تکه می‌شود
-    w_1 = sp.diff(K_1, y_sym, 3).subs(y_sym, xm) 
-    w_2 = sp.diff(K_2, y_sym, 3).subs(y_sym, xm) 
-    
+    w_1 = sp.diff(K_1, y_sym, 3).subs(y_sym, xm)
+    w_2 = sp.diff(K_2, y_sym, 3).subs(y_sym, xm)
+
     w_1_deriv = sp.diff(w_1.subs(x_sym, t_sym), t_sym)
     w_2_deriv = sp.diff(w_2.subs(x_sym, t_sym), t_sym)
-    
+
     int1 = sp.integrate(t_sym * w_2_deriv, (t_sym, 0, xm)).doit()
     int2 = sp.integrate(t_sym * w_1_deriv, (t_sym, xm, sp.pi/2)).doit()
-    
+
     return float(int1 + int2)
 
 # تبدیل توابع نمادین به توابع عددی (NumPy)
@@ -83,19 +83,19 @@ c_matrix = np.zeros((n, n))
 for i in range(n):
     for k in range(i):
         c_matrix[i, k] = sum(beta[k, m] * inner_product_w(i, m) for m in range(k + 1))
-    
+
     norm_w_i_sq = inner_product_w(i, i)
     sum_c_sq = sum(c_matrix[i, k]**2 for k in range(i))
     d_i = np.sqrt(norm_w_i_sq - sum_c_sq)
-    
+
     beta[i, i] = 1.0 / d_i
-    
+
     for j in range(i):
         sum_c_beta = sum(c_matrix[i, k] * beta[k, j] for k in range(j, i))
         beta[i, j] = - (1.0 / d_i) * sum_c_beta
 
 # ==========================================
-# 3. ساخت و حل دستگاه معادلات خطی 
+# 3. ساخت و حل دستگاه معادلات خطی
 # ==========================================
 I_wbar = np.zeros(n)
 for j in range(n):
@@ -109,7 +109,7 @@ for i in range(n):
     B_f_i = sum(beta[i, k] * (np.sin(x_nodes[k]) - x_nodes[k] + (np.pi**3 / 24) * x_nodes[k]) for k in range(i + 1))
     # تنظیم علامت عملگر انتگرالی منطبق با ساختار منفی پایین
     B_x_i = sum(beta[i, k] * (-x_nodes[k]) for k in range(i + 1))
-    
+
     RHS[i] = B_f_i
     for j in range(n):
         M[i, j] = - B_x_i * I_wbar[j]
@@ -134,7 +134,8 @@ def un_deriv_approx(X):
 # ==========================================
 # 5. ارزیابی خطا و باقی‌مانده برای نمودارها
 # ==========================================
-x_plot = np.linspace(0, 1, 200)
+# نقاط نمودار در بازه [0, pi/2]
+x_plot = np.linspace(0, np.pi/2, 200)
 
 exact_plot = np.cos(x_plot)
 # اعمال بازگشت تغییر متغیر u(x) به F(x)
@@ -152,17 +153,17 @@ residual_plot = np.abs(LHS_eq - RHS_eq)
 # ==========================================
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
-ax1.plot(x_plot, error_plot, color='red', linewidth=2, label='Absolute Error $|F(\eta) - F_n(\eta)|$')
-ax1.set_title('Absolute Error over [0, 1]')
-ax1.set_xlabel('$\eta$')
+ax1.plot(x_plot, error_plot, color='red', linewidth=2, label=r'Absolute Error $|F(\eta) - F_n(\eta)|$')
+ax1.set_title(r'Absolute Error over $[0, \pi/2]$')
+ax1.set_xlabel(r'$\eta$')
 ax1.set_ylabel('Error')
 ax1.set_yscale('log')
 ax1.grid(True, which="both", ls="--", alpha=0.5)
 ax1.legend()
 
-ax2.plot(x_plot, residual_plot, color='blue', linewidth=2, label='Residual $R(\eta)$')
-ax2.set_title('Equation Residual over [0, 1]')
-ax2.set_xlabel('$\eta$')
+ax2.plot(x_plot, residual_plot, color='blue', linewidth=2, label=r'Residual $R(\eta)$')
+ax2.set_title(r'Equation Residual over $[0, \pi/2]$')
+ax2.set_xlabel(r'$\eta$')
 ax2.set_ylabel('Residual')
 ax2.set_yscale('log')
 ax2.grid(True, which="both", ls="--", alpha=0.5)
@@ -172,10 +173,10 @@ plt.tight_layout()
 plt.show()
 
 # ==========================================
-# 7. نمایش جدول نهایی 
+# 7. نمایش جدول نهایی
 # ==========================================
-# تولید دقیق نقاط بررسی از 0 تا 1 با گام 0.1
-test_points = np.linspace(0, 1, 11) 
+# 10 نقطه هم‌فاصله در بازه [0, pi/2] (شامل دو سر بازه)
+test_points = np.linspace(0, np.pi/2, 10)
 exact_vals = np.cos(test_points)
 approx_vals = un_approx(test_points) + 1.0 - 0.5 * test_points**2
 errors = np.abs(exact_vals - approx_vals)
@@ -187,7 +188,7 @@ df_results = pd.DataFrame({
     'Absolute Error': errors
 })
 
-df_results['x'] = df_results['x'].apply(lambda val: f"{val:.2f}")
+df_results['x'] = df_results['x'].apply(lambda val: f"{val:.4f}")
 df_results['Exact Solution'] = df_results['Exact Solution'].apply(lambda val: f"{val:.20f}")
 df_results['RKHS Solution'] = df_results['RKHS Solution'].apply(lambda val: f"{val:.20f}")
 df_results['Absolute Error'] = df_results['Absolute Error'].apply(lambda val: f"{val:.2e}")
